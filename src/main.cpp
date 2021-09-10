@@ -18,7 +18,7 @@ using std::vector;
 # define mps2mph 2.24 // factor from m/s to mph
 # define TS 0.02 // sampling timestamp
 # define MAX_SPEED 49.5// tighter velocity threshold for 50mph limit
-# define MAX_ACC .224 // tighter acceleration threshold
+# define MAX_ACC 9.9 // tighter acceleration threshold for 10m/s^2
 # define LANE_WIDTH 4.0
 # define WAYPOINT_STEP_S 30.0
 # define LANENUM_DEFAULT 1 // defined default lane -- where host vehicle should stay unless changing lanes
@@ -29,7 +29,7 @@ using std::vector;
 int findlane(double d, double lane_width) {
   // return lane # given Frenet-d and lane width
   // assume d>0
-  return ceil(d/lane_width);
+  return floor(d/lane_width);
 }
 
 int main() {
@@ -71,11 +71,11 @@ int main() {
   
   // Initialization
 
-  
   int lane = LANENUM_DEFAULT; // host car starts from default lane
   double ref_vel = 0.0; // mph. Host car is stopped at the beginning
+  double max_delta_vel = MAX_ACC*TS; // ref_vel update step upon given TS (0.02s)
 
-  h.onMessage([&ref_vel, &lane, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
+  h.onMessage([&ref_vel, &max_delta_vel, &lane, &map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
                &map_waypoints_dx,&map_waypoints_dy]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                uWS::OpCode opCode) {
@@ -136,7 +136,7 @@ int main() {
           bool close_right = false;
           for ( int i = 0; i < sensor_fusion.size(); i++ ) {
             float d = sensor_fusion[i][6];
-            int car_lane = findlane(sensor_fusion, LANE_WIDTH);
+            int car_lane = findlane(d, LANE_WIDTH);
             if ((car_lane >= 0) && (abs(car_lane-lane)<=1)) {
               // proceed only if the detected car is 
               // i)  in the same direction, and
@@ -159,6 +159,7 @@ int main() {
           }
           
           // Behavior
+          double ref_vel_delta = 0.0;
           if (close_front) {
             // Vehicle close in front:
             // i)  change lane if safe to do so, or
@@ -168,7 +169,7 @@ int main() {
             } else if ((lane!=LANENUM_RIGHTMOST) && (!close_right)) {
               lane++;
             } else {
-              ref_vel -= MAX_ACC;
+              ref_vel_delta = -max_delta_vel;
             }
           } else {
             // If vehicle is not in default lane, change towards the default lane (if safe to do so)
@@ -180,12 +181,12 @@ int main() {
             // Accelerate if too slow
             if (ref_vel < MAX_SPEED) {
               // speed up when too slow
-              ref_vel += MAX_ACC;
+              ref_vel_delta = max_delta_vel;
             }
           }
-          // referal velocity must be positive and within speed limit
-          ref_vel = (ref_vel > MAX_SPEED) ? MAX_SPEED : ref_vel;
-          ref_vel = (ref_vel < MAX_ACC) ? MAX_ACC : ref_vel;
+//          // referal velocity must be positive and within speed limit
+//          ref_vel = (ref_vel > MAX_SPEED) ? MAX_SPEED : ref_vel;
+//          ref_vel = (ref_vel < MAX_ACC) ? MAX_ACC : ref_vel;
               
           // create a list of widely spaced (x,y) waypoints
           // They consist of past and future points, which will be used as accordance for spline interpolation
@@ -261,11 +262,19 @@ int main() {
           double target_dist = sqrt(target_x*target_x + target_y*target_y);
           
           // Fill up the rest points (0.02s interval) between way points
-          double N = target_dist/(TS*ref_vel/mps2mph);
-          double x_step = target_x/N;
+          double x_add_on = 0;
           for( int i = 1; i < MAX_PATH_SIZE - prev_size; i++ ) {
-            double x_point = i*x_step;
+            // consider ref_vel's actual change per point
+            ref_vel += ref_vel_delta;
+            // referal velocity must be positive and within speed limit
+            ref_vel = (ref_vel > MAX_SPEED) ? MAX_SPEED : ref_vel;
+            ref_vel = (ref_vel < max_delta_vel) ? max_delta_vel : ref_vel;
+            
+            // calculate xy of each point
+            double N = target_dist/(TS*ref_vel/mps2mph);
+            double x_point = x_add_on + target_x/N;
             double y_point = s(x_point);
+            x_add_on = x_point;
             
             // convert local points to real-world cartesian coordinate
             double x_ref = x_point;
