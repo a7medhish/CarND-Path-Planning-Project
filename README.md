@@ -24,8 +24,23 @@ The code has been compiled without errors using cmake and make.
 
 ## Reflection
 There is a reflection on how to generate paths. I've put detailed comments in codes, including but not limited to
-- Initialization (Macro definition)
-- Initialization (variables defined outside JSON message)
-- Sensor fusion parsing
+
+### Initialization (Macro definition)
+
+Defined constants which are used later in the as macros:
+- Velocity converting factor from m/s to mph (2.24)
+- Message refreshing period (0.02s) and max path size (50)
+- Actual speed limit (49.5mph) and acceleration limit (9.9m/s^2), which are tighter than required in rubrics
+- Waypoint step grid (30m)
+- Lane parameters (lane width - 4m, default/leftmost/rightmost lane index - 1/0/2)
+
+Also initialized variables for those to be done outside the JSON message:
+- (initial) host lane: default lane
+- (initial) starting speed: 0m/s (stopped)
+- speed incremental step per cycle (max acceleration * message refreshing period)
+
+### Sensor fusion parsing
+
+
 - Behavior
 - Trajectory build-up
