@@ -25,7 +25,7 @@ The code has been compiled without errors using cmake and make.
 ## Reflection
 There is a reflection on how to generate paths. I've put detailed comments in codes, including but not limited to
 
-### Initialization (Macro definition)
+### Initialization
 
 Defined constants which are used later in the as macros:
 - Velocity converting factor from m/s to mph (2.24)
@@ -39,7 +39,7 @@ Also initialized variables for those to be done outside the JSON message:
 - (initial) starting speed: 0m/s (stopped)
 - speed incremental step per cycle (max acceleration * message refreshing period)
 
-### Sensor fusion parsing
+### Sensor fusion
 
 Parsed the sensor fusion list. If the vehicle is from the host lane or one of the adjacent lane, check if they are "close" -- i.e. within a certain range in Frenet-s direction. The concept "close" was used in behavior logics to determine as accordance of slowing down and/or change lane.
 
@@ -52,7 +52,7 @@ In order to drive safely and also with good performance, the host vehicle was de
 | Host vehicle is not in default lane | Switch towards the default lane, given there is no vehicle close in the target lane. |
 | Host vehicle is too slow | Accelerate up to the speed limit. |
 
-### Trajectory build-up
+### Trajectory
 
 Firstly, created loose-grid waypoints -- 5 points defined here:
 - last 2 points from previous path (when unavailable, use current and calculated "previous" car locations).
