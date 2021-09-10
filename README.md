@@ -41,6 +41,15 @@ Also initialized variables for those to be done outside the JSON message:
 
 ### Sensor fusion parsing
 
+Parsed the sensor fusion list. If the vehicle is from the host lane or one of the adjacent lane, check if they are "close" -- i.e. within a certain range in Frenet-s direction. The concept "close" was used in behavior logics to determine as accordance of slowing down and/or change lane.
 
-- Behavior
-- Trajectory build-up
+### Behavior
+
+In order to drive safely and also with good performance, the host vehicle was designed with the following behaviors.
+| Situation | Action |
+| --------- | ------ |
+| Other vehicle exists close in front | Switch to left (right) lane if no vehicle exist close in left (right).<br />Otherwise, slow down.|
+| Host vehicle is not in default lane | Switch towards the default lane, given there is no vehicle close in the target lane. |
+| Host vehicle is too slow | Accelerate up to the speed limit. |
+
+### Trajectory build-up
