@@ -15,7 +15,7 @@ The code has been compiled without errors using cmake and make.
 ## Valid Trajectories
 | Criteria | Comment |
 | -------- | ------- |
-| The car is able to drive at least 4.32 miles without incident. | Finished a lap and no incident. |
+| The car is able to drive at least 4.32 miles without incident. | Finished a lap and no incident popped up. |
 | The car drives according to the speed limit. | No speed limit warning message popped up. |
 | Max Acceleration and Jerk are not Exceeded. | No acceleration / jerk warning message popped up.|
 | Car does not have collisions. | No collisions. |
