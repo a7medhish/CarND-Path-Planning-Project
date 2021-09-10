@@ -48,8 +48,19 @@ Parsed the sensor fusion list. If the vehicle is from the host lane or one of th
 In order to drive safely and also with good performance, the host vehicle was designed with the following behaviors.
 | Situation | Action |
 | --------- | ------ |
-| Other vehicle exists close in front | Switch to left (right) lane if no vehicle exist close in left (right).<br />Otherwise, slow down.|
+| Other vehicle exists close in front | Switch to left (right) lane if no vehicle exist close in left (right) to make a pass.<br />Otherwise, slow down.|
 | Host vehicle is not in default lane | Switch towards the default lane, given there is no vehicle close in the target lane. |
 | Host vehicle is too slow | Accelerate up to the speed limit. |
 
 ### Trajectory build-up
+
+Firstly, created loose-grid waypoints -- 5 points defined here:
+- last 2 points from previous path (when unavailable, use current and calculated "previous" car locations).
+- 3 points further in the way (Frenet-s).
+Also converted these waypoints into local car coordinates (where reference point's x/y/yaw angle all 0) for easier spline calculation.
+
+Secondly, calculated trajectory points.
+- Use existing trajectory points to keep continuity -- only calculate new points if needed.
+- For new points calculation, initialized a spline object using all the waypoints, and calculated new trajectory points (each one 0.02s apart) within maximum 30m ahead. Note the host speed is time-varying -- which was considered in calculation.
+- Converted these new points into real-world coordinates.
+Then embedded the updated trajectory into JSON message.
