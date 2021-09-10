@@ -57,7 +57,7 @@ In order to drive safely and also with good performance, the host vehicle was de
 Firstly, created loose-grid waypoints -- 5 points defined here:
 - last 2 points from previous path (when unavailable, use current and calculated "previous" car locations).
 - 3 points further in the way (Frenet-s).
-Also converted these waypoints into local car coordinates (where reference point's x/y/yaw angle all 0) for easier spline calculation.
+Also converted these waypoints into local car coordinates (where reference point's (x,y,yaw) are all 0) for easier spline calculation.
 
 Secondly, calculated trajectory points.
 - Use existing trajectory points to keep continuity -- only calculate new points if needed.
